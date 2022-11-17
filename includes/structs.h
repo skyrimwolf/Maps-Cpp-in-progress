@@ -1,38 +1,4 @@
-#include<stdio.h>
-#include<math.h>
-#include<climits>
-#include<string>
-#include<vector>
-#include<fstream>
-#include<unordered_map>
-#include<unordered_set>
-#include<set>
-#include<queue>
-
-#if 0                                                      //if 1 if you want to check speed
-#include<chrono>
-
-struct Timer
-{
-    std::string s_name;
-    std::chrono::high_resolution_clock::time_point s_start, s_end;
-    std::chrono::duration<float> s_duration;
-
-    Timer(const char *name)
-    {
-        s_start = std::chrono::high_resolution_clock::now();
-        s_name  = name;
-    }
-
-    ~Timer()
-    {
-        s_end      = std::chrono::high_resolution_clock::now();
-        s_duration = s_end - s_start;
-
-        printf("Timer for %s took %f ms.\n", s_name.c_str(), s_duration.count()*1000.0f);
-    }
-};
-#endif
+#include "pch.h"
 
 struct Way
 {
@@ -69,7 +35,7 @@ std::unordered_map<std::string, int> g_nameTag           //quick choosing
     {"operator", 5}
 };
 
-bool operator <(const KeyPoint &x, const KeyPoint &y)    //a must: order of set is decided by the weight of a KeyPoint - preparation for Dijkstra's algorithm
+bool operator<(const KeyPoint &x, const KeyPoint &y)     //a must: order of set is decided by the weight of a KeyPoint - preparation for Dijkstra's algorithm
 {
     return x.s_weight < y.s_weight;
 }

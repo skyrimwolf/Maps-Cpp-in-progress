@@ -2,7 +2,6 @@
 
 int main(int argc, char **argv) //argv -> .out file + {start keyPointId, end keyPointId}
 {
-    Timer T("main");
     RoadMap R;
 
     if(argc == 3)

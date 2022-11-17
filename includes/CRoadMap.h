@@ -27,8 +27,6 @@ public:
 //constructor
 RoadMap::RoadMap()
 {
-    //Timer T("RoadMap");                                                                                            //Only for checking the speed of a method
-
     BuildKeyPoints();
     BuildRoad();
 }
@@ -54,7 +52,7 @@ std::fstream RoadMap::FileOpener(const char *name, std::ios_base::openmode howTo
     fd.open(name, howToOpen);
     if(!fd.is_open())
     {
-        printf("Error: File %s could not be opened.\n", name);
+        std::cout << "Error: File " << name << " could not be opened.\n";
         exit(EXIT_FAILURE);
     };
     
@@ -81,7 +79,6 @@ double RoadMap::HaversineFormula(double latStart, double lonStart, double latEnd
 //load all the keyPoints in a vector from KeyPoints.txt
 void RoadMap::BuildKeyPoints()
 {
-    //Timer T("BuidKeyPoints");                                                                                     //Only for checking the speed of a method
     bool isKeyPointsLoaded = true;
     long index = 0;
     std::fstream fKeyPoints = FileOpener("../files/keyPoints.txt", std::fstream::in);
@@ -104,7 +101,6 @@ void RoadMap::BuildKeyPoints()
 //build the whole road and a network of keyPoints - true init function
 void RoadMap::BuildRoad()
 {
-    //Timer T("BuildRoad");                                                                                         //Only for checking the speed of a method
     bool isWayLoaded = true;
     std::fstream file     = FileOpener("../files/roads.txt", std::fstream::in);
     std::string tmpString = "NONAME";                                                                               //it will get string "id"
@@ -145,16 +141,15 @@ void RoadMap::BuildRoad()
     
     file.close();                                                                                                   //cleanup
     tmpVector.clear();                                                                                              //cleanup
+    g_nameTag.clear();                                                                                              //cleanup
 }
 
 //insert and connect all nodes of one way block
 void RoadMap::InsertKeys(std::vector<long> &keyIds, Way &tmpWay)
 {
-    std::vector<long>::iterator it;
-
     KeyPoint tmpKeyPoint1 = m_roadPoints[*(keyIds.begin())];                                                        //get the keyPoints through given ids
     
-    for(it = keyIds.begin(); it != keyIds.end() - 1; it++)                                                          //loop until end()-1 because of *(it+1) in the loop
+    for(auto it = keyIds.begin(); it != keyIds.end() - 1; it++)                                                     //loop until end()-1 because of *(it+1) in the loop
     {
         KeyPoint &tmpKeyPoint2 = m_roadPoints[*(it+1)];
         double weight          = HaversineFormula(tmpKeyPoint2.s_latitude, tmpKeyPoint2.s_longitude, tmpKeyPoint1.s_latitude, tmpKeyPoint1.s_longitude);
@@ -182,7 +177,6 @@ void RoadMap::InsertKeys(std::vector<long> &keyIds, Way &tmpWay)
 //implementation of Dijkstra's algorithm
 void RoadMap::FindShortestRoute(long src, long dest)
 {
-    //Timer T("FindShortestRoute");                                                                                 //Only for checking the speed of a method
     std::queue<long> ids;
     bool isVisited[m_roadPoints.size()] = {false};                                                                  //none is yet visited
     long curr = 0;
@@ -206,10 +200,12 @@ void RoadMap::FindShortestRoute(long src, long dest)
                 ids.push(currKey.s_id);
                 isVisited[currKey.s_index] = true;
             };
-            
-            if(m_road[curr].s_distance + currKey.s_weight < m_road[currKey.s_id].s_distance)                        //update distance to smaller if it can be done
+
+            double tmpDist = m_road[curr].s_distance + currKey.s_weight;
+
+            if(tmpDist < m_road[currKey.s_id].s_distance)                                                           //update distance to smaller if it can be done
             {
-                m_road[currKey.s_id].s_distance = m_road[curr].s_distance + currKey.s_weight;
+                m_road[currKey.s_id].s_distance = tmpDist;
                 m_road[currKey.s_id].s_lastKey  = curr;
             };
         };
@@ -221,25 +217,24 @@ void RoadMap::FindShortestRoute(long src, long dest)
 //print the way you need to go for the wanted road
 void RoadMap::PrintRoute(long src, long dest)
 {
-    //Timer T("PrintRoute");                                                                                        //Only for checking the speed of a method
     long curr = dest; // go from back to the start (reverse)
     std::vector<long> road;
     
-    road.push_back(curr);                                                                                           //push the starting (dest) id to vector
+    road.emplace_back(curr);                                                                                        //emplace the starting (dest) id to vector
     
     while(curr != src)                                                                                              //until it reaches the begining, push to vector and go backwards (towards src)
     {
-        road.push_back(m_road[curr].s_lastKey);
+        road.emplace_back(m_road[curr].s_lastKey);
         
         curr = m_road[curr].s_lastKey;
     };
     
-    printf("Road from %ld to %ld:\n\n", src, dest);
+    std::cout << "Road from " << src << " to " << dest << "\n\n";
     
     for(std::vector<long>::reverse_iterator it = road.rbegin(); it != road.rend(); it++)                            //print the solution
-        printf("%ld ", *it);
-    
-    printf("\n");
-    
-    road.clear();                                                                                                   //cleanup
+        std::cout << *it << " ";
+
+    std::cout << "\n";
+
+    road.clear(); // cleanup
 }
